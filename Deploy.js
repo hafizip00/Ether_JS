@@ -3,10 +3,12 @@ const fs = require('fs-extra');
 const dotenv = require('dotenv').config()
 
 async function main(){
-    // http://127.0.0.1:7545
     const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
-    const Wallet = new ethers.Wallet(process.env.PRIVATE_KEY,
-    provider);
+    // const Wallet = new ethers.Wallet(process.env.PRIVATE_KEY,provider);
+    const encryptedJSON = fs.readFileSync('./.encrypted.json' , "utf-8")
+    let Wallet = await ethers.Wallet.fromEncryptedJson(encryptedJSON , process.env.PASSWORD);
+    //Now Connecting the wallet with Provider above we were doing direct
+    Wallet = Wallet.connect(provider);
     // Actual tells how to interact with Contract
     const abi = fs.readFileSync("./SimpleStorage_sol_SimpleStorage.abi" , "utf-8");
     // Actual Compiled Code
@@ -17,11 +19,11 @@ async function main(){
     console.log("Deploying Contract...")
     const contract = await contractFactory.deploy();
     const retrieve = await contract.retrieve();
-    console.log(retrieve.toString());
+    // console.log(retrieve.toString());
     const store = await contract.store("7");
     const transactionReceipt = await store.wait(1);
     const updatedNumber = await contract.retrieve();
-    console.log(updatedNumber.toString());
+    // console.log(updatedNumber.toString());
    // const deployementReceipt = await contract.deployTransaction.wait(1);
     // console.log(deployementReceipt)
     // const nonce = await Wallet.getTransactionCount();
